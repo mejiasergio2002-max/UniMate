@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { findVideo } from "@/lib/videos";
+import { findVideo } from "../../../lib/videos";
 
 type Comment = { text: string; at: number };
 
@@ -23,11 +23,9 @@ export default function ClassRoomPage({ params }: { params: { id: string } }) {
   const [tipsTotal, setTipsTotal] = useState(0);
 
   useEffect(() => {
-    // Load comments
     const raw = localStorage.getItem(commentsKey);
     setComments(raw ? JSON.parse(raw) : []);
 
-    // Load tips
     const t = localStorage.getItem(tipsKey);
     setTipsTotal(t ? Number(t) : 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -57,10 +55,7 @@ export default function ClassRoomPage({ params }: { params: { id: string } }) {
       <main className="min-h-screen bg-[#0b1020] text-white p-10">
         <h1 className="text-2xl font-extrabold">Class not found</h1>
         <p className="mt-2 text-white/70">That class ID doesn’t exist.</p>
-        <a
-          className="inline-block mt-6 px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5"
-          href="/feed"
-        >
+        <a className="inline-block mt-6 px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5" href="/feed">
           Back to Feed
         </a>
       </main>
@@ -73,9 +68,7 @@ export default function ClassRoomPage({ params }: { params: { id: string } }) {
       <header className="border-b border-white/10">
         <div className="max-w-5xl mx-auto px-6 py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-violet-600 grid place-items-center font-extrabold">
-              U
-            </div>
+            <div className="w-10 h-10 rounded-xl bg-violet-600 grid place-items-center font-extrabold">U</div>
             <div>
               <div className="font-extrabold leading-4">UniMate</div>
               <div className="text-xs text-white/60">Class Room</div>
@@ -89,22 +82,15 @@ export default function ClassRoomPage({ params }: { params: { id: string } }) {
       </header>
 
       <section className="max-w-5xl mx-auto px-6 py-10 grid lg:grid-cols-12 gap-6">
-        {/* LEFT: Video + tip jar */}
+        {/* Left: Video + tip jar */}
         <div className="lg:col-span-7 border border-white/10 rounded-3xl p-5 bg-white/5">
           <div className="text-sm text-white/60">Instructor</div>
           <div className="text-xl font-extrabold">{video.username}</div>
           <div className="text-white/70 text-sm mt-1">{video.title}</div>
 
-          {/* Video player */}
+          {/* Video */}
           <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-black/40">
-            <video
-              className="w-full h-auto"
-              src={video.src}
-              controls
-              playsInline
-              autoPlay
-              muted
-            />
+            <video className="w-full h-auto" src={video.src} controls playsInline autoPlay muted />
           </div>
 
           {/* Tip jar */}
@@ -129,12 +115,12 @@ export default function ClassRoomPage({ params }: { params: { id: string } }) {
             </div>
 
             <div className="mt-2 text-xs text-white/50">
-              MVP: tips saved locally. Next: real payments (Stripe).
+              MVP: tips saved locally. Next: Stripe.
             </div>
           </div>
         </div>
 
-        {/* RIGHT: Comments */}
+        {/* Right: Comments */}
         <div className="lg:col-span-5 border border-white/10 rounded-3xl p-6 bg-white/5">
           <h2 className="text-xl font-extrabold">Comments</h2>
           <p className="mt-2 text-white/70 text-sm">Ask questions while watching.</p>
