@@ -28,7 +28,6 @@ export default function RegisterPage() {
         return;
       }
 
-      // Save token if your API returns it (your project likely does)
       if (data.token) localStorage.setItem("unimate_token", data.token);
       if (data.user) localStorage.setItem("unimate_user", JSON.stringify(data.user));
 
@@ -52,9 +51,7 @@ export default function RegisterPage() {
         </div>
 
         <h1 className="mt-5 text-2xl font-extrabold">Create your account</h1>
-        <p className="mt-2 text-white/70 text-sm">
-          Start teaching or join a class in seconds.
-        </p>
+        <p className="mt-2 text-white/70 text-sm">Start teaching or join a class in seconds.</p>
 
         <form onSubmit={onRegister} className="mt-6 space-y-3">
           <input
@@ -88,14 +85,6 @@ export default function RegisterPage() {
           >
             {loading ? "Creating..." : "Register"}
           </button>
-
-          {/* ✅ ENTER FEED BUTTON */}
-          <a
-            href="/feed"
-            className="inline-block w-full text-center mt-1 px-4 py-3 rounded-xl border border-white/10 hover:bg-white/5"
-          >
-            Enter feed
-          </a>
 
           <div className="text-sm text-white/70 text-center pt-2">
             Already have an account?{" "}
