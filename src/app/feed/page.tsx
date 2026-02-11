@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { videosBySubject, type UniMateVideo } from "@/lib/videos";
 
 type Room = {
   id: string;
@@ -12,20 +13,6 @@ type Room = {
 };
 
 type User = { id: string; name: string; email: string };
-
-// 1) Video library by "search category"
-const VIDEO_LIBRARY: Record<string, { src: string; title: string }[]> = {
-  // default/current videos live under Math
-  math: [
-    { src: "/videos/math/study-1.mp4", title: "Math Focus 1" },
-    { src: "/videos/math/study-2.mp4", title: "Math Focus 2" },
-    { src: "/videos/math/study-3.mp4", title: "Math Focus 3" },
-    { src: "/videos/math/study-4.mp4", title: "Math Focus 4" },
-  ],
-  // later you can add:
-  // science: [{ src: "/videos/science/...", title: "..." }],
-  // english: [{ src: "/videos/english/...", title: "..." }],
-};
 
 function timeAgo(ts: number) {
   const diff = Date.now() - ts;
@@ -48,8 +35,8 @@ export default function FeedPage() {
   const [topic, setTopic] = useState("");
   const [isPublic, setIsPublic] = useState(true);
 
-  // Join a class search -> controls which video set shows
-  const [search, setSearch] = useState("math"); // default = math
+  // Join a class search -> controls which videos show
+  const [search, setSearch] = useState("math");
 
   const token = useMemo(
     () => (typeof window !== "undefined" ? localStorage.getItem("unimate_token") : null),
@@ -75,7 +62,7 @@ export default function FeedPage() {
     const meData = data.me ? { id: data.me.id, name: data.me.name, email: data.me.email } : null;
     setMe(meData);
 
-    // Keep it simple: show only public rooms
+    // keep it simple: only public rooms
     const publicRooms = (data.rooms || []).filter((r: Room) => r.isPublic);
     setRooms(publicRooms);
 
@@ -110,8 +97,7 @@ export default function FeedPage() {
     window.location.href = "/";
   }
 
-  const key = (search || "math").trim().toLowerCase();
-  const videos = VIDEO_LIBRARY[key] ?? VIDEO_LIBRARY["math"] ?? [];
+  const videos: UniMateVideo[] = videosBySubject(search);
 
   return (
     <main className="min-h-screen bg-[#0b1020] text-white">
@@ -141,12 +127,8 @@ export default function FeedPage() {
               </>
             ) : (
               <>
-                <a className="text-white/80 hover:text-white" href="/login">
-                  Login
-                </a>
-                <a className="px-4 py-2 rounded-xl bg-violet-600 font-semibold" href="/register">
-                  Register
-                </a>
+                <a className="text-white/80 hover:text-white" href="/login">Login</a>
+                <a className="px-4 py-2 rounded-xl bg-violet-600 font-semibold" href="/register">Register</a>
               </>
             )}
           </div>
@@ -164,7 +146,7 @@ export default function FeedPage() {
           <div className="mt-4 space-y-3">
             <input
               className="w-full p-3 rounded-xl bg-black/30 border border-white/10"
-              placeholder="Topic (e.g. Biology, Algebra, Guitar)"
+              placeholder="Topic (e.g. Algebra, Guitar, Python)"
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
             />
@@ -182,23 +164,12 @@ export default function FeedPage() {
           </div>
         </div>
 
-        {/* Join a class (video themed) */}
+        {/* Join a class */}
         <div className="border border-white/10 rounded-3xl p-6 bg-white/5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-xl font-extrabold">Join a class</h2>
-              <p className="mt-1 text-white/70 text-sm">
-                Search a subject to load its video vibe (currently: Math).
-              </p>
-            </div>
-
-            <button
-              className="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm"
-              onClick={loadFeed}
-            >
-              Refresh
-            </button>
-          </div>
+          <h2 className="text-xl font-extrabold">Join a class</h2>
+          <p className="mt-2 text-white/70 text-sm">
+            Search a subject to load its video set (right now: <span className="text-white/80">math</span>).
+          </p>
 
           {/* Search bar */}
           <div className="mt-4">
@@ -209,19 +180,22 @@ export default function FeedPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
             <div className="mt-2 text-xs text-white/50">
-              If the subject doesn’t exist yet, it falls back to <span className="text-white/70">math</span>.
+              If it doesn’t exist yet, it falls back to math.
             </div>
           </div>
 
-          {/* Video grid */}
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            {videos.length === 0 ? (
-              <div className="text-white/60 text-sm col-span-2">No videos found for this subject.</div>
-            ) : (
-              videos.map((v) => (
-                <div key={v.src} className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+          {/* Clickable mini videos */}
+          <div className="mt-4 grid grid-cols-3 gap-3">
+            {videos.map((v) => (
+              <a
+                key={v.id}
+                href={`/class/${v.id}`}
+                className="block group"
+                title={`Open ${v.title}`}
+              >
+                <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/20 group-hover:border-white/20 transition">
                   <video
-                    className="h-40 w-full object-cover"
+                    className="h-24 w-full object-cover"
                     src={v.src}
                     muted
                     loop
@@ -229,22 +203,27 @@ export default function FeedPage() {
                     autoPlay
                     preload="metadata"
                   />
-                  <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
-                    <div className="text-sm font-semibold">{v.title}</div>
-                    <div className="text-[11px] text-white/60">{key || "math"}</div>
-                  </div>
                 </div>
-              ))
-            )}
+                <div className="mt-2 text-xs text-white/70 truncate">{v.username}</div>
+              </a>
+            ))}
           </div>
 
-          {/* (Optional) show public rooms below the videos */}
+          {/* Optional: public rooms list stays */}
           <div className="mt-6">
-            <div className="text-sm font-semibold text-white/80">Public rooms</div>
+            <div className="flex items-center justify-between">
+              <div className="text-sm font-semibold text-white/80">Public rooms</div>
+              <button
+                className="px-3 py-1.5 rounded-xl border border-white/10 hover:bg-white/5 text-xs"
+                onClick={loadFeed}
+              >
+                Refresh
+              </button>
+            </div>
 
             <div className="mt-3">
               {loading ? (
-                <div className="text-white/60">Loading…</div>
+                <div className="text-white/60 text-sm">Loading…</div>
               ) : rooms.length === 0 ? (
                 <div className="text-white/60 text-sm">No public rooms yet.</div>
               ) : (
@@ -258,10 +237,7 @@ export default function FeedPage() {
                             Host: {r.hostName} • Tips: {r.tipsTotal} • {timeAgo(r.createdAt)}
                           </div>
                         </div>
-                        <a
-                          className="px-4 py-2 rounded-xl bg-violet-600 font-semibold text-sm whitespace-nowrap"
-                          href={`/room/${r.id}`}
-                        >
+                        <a className="px-4 py-2 rounded-xl bg-violet-600 font-semibold text-sm" href={`/room/${r.id}`}>
                           Join
                         </a>
                       </div>
@@ -271,6 +247,7 @@ export default function FeedPage() {
               )}
             </div>
           </div>
+
         </div>
       </section>
     </main>
