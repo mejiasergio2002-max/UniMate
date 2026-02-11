@@ -13,6 +13,20 @@ type Room = {
 
 type User = { id: string; name: string; email: string };
 
+// 1) Video library by "search category"
+const VIDEO_LIBRARY: Record<string, { src: string; title: string }[]> = {
+  // default/current videos live under Math
+  math: [
+    { src: "/videos/math/study-1.mp4", title: "Math Focus 1" },
+    { src: "/videos/math/study-2.mp4", title: "Math Focus 2" },
+    { src: "/videos/math/study-3.mp4", title: "Math Focus 3" },
+    { src: "/videos/math/study-4.mp4", title: "Math Focus 4" },
+  ],
+  // later you can add:
+  // science: [{ src: "/videos/science/...", title: "..." }],
+  // english: [{ src: "/videos/english/...", title: "..." }],
+};
+
 function timeAgo(ts: number) {
   const diff = Date.now() - ts;
   const mins = Math.floor(diff / 60000);
@@ -30,8 +44,12 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [msg, setMsg] = useState<string | null>(null);
 
+  // Start teaching
   const [topic, setTopic] = useState("");
   const [isPublic, setIsPublic] = useState(true);
+
+  // Join a class search -> controls which video set shows
+  const [search, setSearch] = useState("math"); // default = math
 
   const token = useMemo(
     () => (typeof window !== "undefined" ? localStorage.getItem("unimate_token") : null),
@@ -57,7 +75,7 @@ export default function FeedPage() {
     const meData = data.me ? { id: data.me.id, name: data.me.name, email: data.me.email } : null;
     setMe(meData);
 
-    // Keep it simple: show only public rooms in the feed list
+    // Keep it simple: show only public rooms
     const publicRooms = (data.rooms || []).filter((r: Room) => r.isPublic);
     setRooms(publicRooms);
 
@@ -92,6 +110,9 @@ export default function FeedPage() {
     window.location.href = "/";
   }
 
+  const key = (search || "math").trim().toLowerCase();
+  const videos = VIDEO_LIBRARY[key] ?? VIDEO_LIBRARY["math"] ?? [];
+
   return (
     <main className="min-h-screen bg-[#0b1020] text-white">
       {/* Header */}
@@ -111,16 +132,10 @@ export default function FeedPage() {
                 <span className="text-white/70 hidden sm:block">
                   {me.name} <span className="text-white/40">({me.email})</span>
                 </span>
-                <button
-                  className="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5"
-                  onClick={loadFeed}
-                >
+                <button className="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5" onClick={loadFeed}>
                   Refresh
                 </button>
-                <button
-                  className="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5"
-                  onClick={logout}
-                >
+                <button className="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5" onClick={logout}>
                   Logout
                 </button>
               </>
@@ -167,10 +182,16 @@ export default function FeedPage() {
           </div>
         </div>
 
-        {/* Join a class */}
+        {/* Join a class (video themed) */}
         <div className="border border-white/10 rounded-3xl p-6 bg-white/5">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-extrabold">Join a class</h2>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-xl font-extrabold">Join a class</h2>
+              <p className="mt-1 text-white/70 text-sm">
+                Search a subject to load its video vibe (currently: Math).
+              </p>
+            </div>
+
             <button
               className="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm"
               onClick={loadFeed}
@@ -179,37 +200,76 @@ export default function FeedPage() {
             </button>
           </div>
 
-          <p className="mt-2 text-white/70 text-sm">
-            Public rooms happening now.
-          </p>
-
+          {/* Search bar */}
           <div className="mt-4">
-            {loading ? (
-              <div className="text-white/60">Loading…</div>
-            ) : rooms.length === 0 ? (
-              <div className="text-white/60">No public rooms yet.</div>
+            <input
+              className="w-full p-3 rounded-xl bg-black/30 border border-white/10"
+              placeholder='Search subject (try: "math")'
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <div className="mt-2 text-xs text-white/50">
+              If the subject doesn’t exist yet, it falls back to <span className="text-white/70">math</span>.
+            </div>
+          </div>
+
+          {/* Video grid */}
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {videos.length === 0 ? (
+              <div className="text-white/60 text-sm col-span-2">No videos found for this subject.</div>
             ) : (
-              <div className="space-y-3">
-                {rooms.map((r) => (
-                  <div key={r.id} className="border border-white/10 rounded-2xl p-4 bg-black/20">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="font-bold truncate">{r.topic}</div>
-                        <div className="text-xs text-white/60 mt-1">
-                          Host: {r.hostName} • Tips: {r.tipsTotal} • {timeAgo(r.createdAt)}
-                        </div>
-                      </div>
-                      <a
-                        className="px-4 py-2 rounded-xl bg-violet-600 font-semibold text-sm whitespace-nowrap"
-                        href={`/room/${r.id}`}
-                      >
-                        Join
-                      </a>
-                    </div>
+              videos.map((v) => (
+                <div key={v.src} className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                  <video
+                    className="h-40 w-full object-cover"
+                    src={v.src}
+                    muted
+                    loop
+                    playsInline
+                    autoPlay
+                    preload="metadata"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
+                    <div className="text-sm font-semibold">{v.title}</div>
+                    <div className="text-[11px] text-white/60">{key || "math"}</div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))
             )}
+          </div>
+
+          {/* (Optional) show public rooms below the videos */}
+          <div className="mt-6">
+            <div className="text-sm font-semibold text-white/80">Public rooms</div>
+
+            <div className="mt-3">
+              {loading ? (
+                <div className="text-white/60">Loading…</div>
+              ) : rooms.length === 0 ? (
+                <div className="text-white/60 text-sm">No public rooms yet.</div>
+              ) : (
+                <div className="space-y-3">
+                  {rooms.map((r) => (
+                    <div key={r.id} className="border border-white/10 rounded-2xl p-4 bg-black/20">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-bold truncate">{r.topic}</div>
+                          <div className="text-xs text-white/60 mt-1">
+                            Host: {r.hostName} • Tips: {r.tipsTotal} • {timeAgo(r.createdAt)}
+                          </div>
+                        </div>
+                        <a
+                          className="px-4 py-2 rounded-xl bg-violet-600 font-semibold text-sm whitespace-nowrap"
+                          href={`/room/${r.id}`}
+                        >
+                          Join
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
