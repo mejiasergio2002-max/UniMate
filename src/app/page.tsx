@@ -57,7 +57,8 @@ export default function Home() {
             </a>
             <a
               className="px-6 py-3 rounded-xl border border-white/10 text-base hover:bg-white/5"
-              href="/rooms"
+              href="/feed"
+
             >
               Join a class
             </a>

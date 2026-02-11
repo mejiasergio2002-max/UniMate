@@ -25,7 +25,8 @@ export default function LoginPage() {
 
     localStorage.setItem("unimate_token", data.token);
     localStorage.setItem("unimate_user", JSON.stringify(data.user));
-    r.push("/dashboard");
+   r.push("/feed");
+
   }
 
   return (

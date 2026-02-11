@@ -11,22 +11,37 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setMsg(null);
+ async function onSubmit(e: React.FormEvent) {
+  e.preventDefault();
+  setMsg(null);
 
-    const res = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    });
+  // 1) Register
+  const reg = await fetch("/api/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, email, password }),
+  });
 
-    const data = await res.json();
-    if (!res.ok) return setMsg(data.error || "Failed");
+  const regData = await reg.json();
+  if (!reg.ok) return setMsg(regData.error || "Failed");
 
-    setMsg("Registered! Now login.");
-    r.push("/login");
-  }
+  // 2) Auto-login
+  const login = await fetch("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const loginData = await login.json();
+  if (!login.ok) return setMsg(loginData.error || "Login failed");
+
+  localStorage.setItem("unimate_token", loginData.token);
+  localStorage.setItem("unimate_user", JSON.stringify(loginData.user));
+
+  // 3) Go to feed
+  r.push("/feed");
+}
+
 
   return (
     <main className="min-h-screen bg-[#0b1020] text-white flex items-center justify-center p-6">
