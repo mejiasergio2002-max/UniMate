@@ -1,68 +1,110 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 export default function RegisterPage() {
-  const r = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
- async function onSubmit(e: React.FormEvent) {
-  e.preventDefault();
-  setMsg(null);
+  async function onRegister(e: React.FormEvent) {
+    e.preventDefault();
+    setMsg(null);
+    setLoading(true);
 
-  // 1) Register
-  const reg = await fetch("/api/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password }),
-  });
+    try {
+      const res = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
 
-  const regData = await reg.json();
-  if (!reg.ok) return setMsg(regData.error || "Failed");
+      const data = await res.json();
+      if (!res.ok) {
+        setLoading(false);
+        setMsg(data.error || "Register failed");
+        return;
+      }
 
-  // 2) Auto-login
-  const login = await fetch("/api/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
+      // Save token if your API returns it (your project likely does)
+      if (data.token) localStorage.setItem("unimate_token", data.token);
+      if (data.user) localStorage.setItem("unimate_user", JSON.stringify(data.user));
 
-  const loginData = await login.json();
-  if (!login.ok) return setMsg(loginData.error || "Login failed");
-
-  localStorage.setItem("unimate_token", loginData.token);
-  localStorage.setItem("unimate_user", JSON.stringify(loginData.user));
-
-  // 3) Go to feed
-  r.push("/feed");
-}
-
+      setLoading(false);
+      window.location.href = "/feed";
+    } catch (err: any) {
+      setLoading(false);
+      setMsg(err?.message || "Register failed");
+    }
+  }
 
   return (
-    <main className="min-h-screen bg-[#0b1020] text-white flex items-center justify-center p-6">
-      <form onSubmit={onSubmit} className="w-full max-w-md border border-white/10 bg-white/5 rounded-2xl p-6">
-        <h1 className="text-2xl font-bold">Register</h1>
-        <p className="text-white/60 text-sm mt-1">Create your UniMate account.</p>
-
-        <div className="mt-5 space-y-3">
-          <input className="w-full p-3 rounded-xl bg-black/30 border border-white/10"
-            placeholder="Name" value={name} onChange={(e)=>setName(e.target.value)} />
-          <input className="w-full p-3 rounded-xl bg-black/30 border border-white/10"
-            placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)} />
-          <input className="w-full p-3 rounded-xl bg-black/30 border border-white/10"
-            placeholder="Password" type="password" value={password} onChange={(e)=>setPassword(e.target.value)} />
+    <main className="min-h-screen bg-[#0b1020] text-white grid place-items-center px-6">
+      <div className="w-full max-w-md border border-white/10 rounded-3xl p-6 bg-white/5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-violet-600 grid place-items-center font-extrabold">U</div>
+          <div>
+            <div className="font-extrabold leading-4">UniMate</div>
+            <div className="text-xs text-white/60">Register</div>
+          </div>
         </div>
 
-        {msg && <div className="mt-4 text-sm text-white/70">{msg}</div>}
+        <h1 className="mt-5 text-2xl font-extrabold">Create your account</h1>
+        <p className="mt-2 text-white/70 text-sm">
+          Start teaching or join a class in seconds.
+        </p>
 
-        <button className="mt-5 w-full p-3 rounded-xl bg-violet-600 font-semibold">Create account</button>
-        <Link className="block mt-3 text-sm text-white/70 hover:text-white" href="/login">Already have an account? Login</Link>
-      </form>
+        <form onSubmit={onRegister} className="mt-6 space-y-3">
+          <input
+            className="w-full p-3 rounded-xl bg-black/30 border border-white/10"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+
+          <input
+            className="w-full p-3 rounded-xl bg-black/30 border border-white/10"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
+          <input
+            className="w-full p-3 rounded-xl bg-black/30 border border-white/10"
+            placeholder="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          {msg && <div className="text-sm text-white/70">{msg}</div>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full p-3 rounded-xl bg-violet-600 font-semibold disabled:opacity-60"
+          >
+            {loading ? "Creating..." : "Register"}
+          </button>
+
+          {/* ✅ ENTER FEED BUTTON */}
+          <a
+            href="/feed"
+            className="inline-block w-full text-center mt-1 px-4 py-3 rounded-xl border border-white/10 hover:bg-white/5"
+          >
+            Enter feed
+          </a>
+
+          <div className="text-sm text-white/70 text-center pt-2">
+            Already have an account?{" "}
+            <a className="text-white hover:underline" href="/login">
+              Login
+            </a>
+          </div>
+        </form>
+      </div>
     </main>
   );
 }

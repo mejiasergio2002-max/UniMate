@@ -136,9 +136,14 @@ export default function FeedPage() {
                 </button>
               </>
             ) : (
-              <a className="text-white/80 hover:text-white" href="/feed">
-                Enter feed
-              </a>
+              <>
+                <a className="text-white/80 hover:text-white" href="/login">
+                  Login
+                </a>
+                <a className="px-4 py-2 rounded-xl bg-violet-600 font-semibold" href="/register">
+                  Register
+                </a>
+              </>
             )}
           </div>
         </div>
@@ -146,15 +151,19 @@ export default function FeedPage() {
 
       <section className="max-w-5xl mx-auto px-6 py-10 grid md:grid-cols-2 gap-6">
         {/* START TEACHING */}
-        <a className="inline-block px-4 py-2 rounded-xl bg-violet-600 font-semibold" href="/teach">
-  Open Teach (Go Live)
-</a>
-
         <div className="border border-white/10 rounded-3xl p-6 bg-white/5">
           <h2 className="text-xl font-extrabold">Start teaching</h2>
           <p className="mt-2 text-white/70 text-sm">
             Create a room and share it. Public rooms appear in the feed.
           </p>
+
+          {/* Optional: link to Teach page */}
+          <a
+            href="/teach"
+            className="inline-block mt-4 px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-sm"
+          >
+            Open Teach (Go Live)
+          </a>
 
           <div className="mt-4 space-y-3">
             <input
@@ -216,9 +225,7 @@ export default function FeedPage() {
                     preload="metadata"
                   />
                 </div>
-                <div className="mt-2 text-xs text-white/70 truncate">
-                  {v.username}
-                </div>
+                <div className="mt-2 text-xs text-white/70 truncate">{v.username}</div>
               </a>
             ))}
           </div>
@@ -243,10 +250,7 @@ export default function FeedPage() {
               ) : (
                 <div className="space-y-3">
                   {rooms.map((r) => (
-                    <div
-                      key={r.id}
-                      className="border border-white/10 rounded-2xl p-4 bg-black/20"
-                    >
+                    <div key={r.id} className="border border-white/10 rounded-2xl p-4 bg-black/20">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                           <div className="font-bold truncate">{r.topic}</div>
@@ -254,10 +258,7 @@ export default function FeedPage() {
                             Host: {r.hostName} • Tips: {r.tipsTotal} • {timeAgo(r.createdAt)}
                           </div>
                         </div>
-                        <a
-                          className="px-4 py-2 rounded-xl bg-violet-600 font-semibold text-sm"
-                          href={`/room/${r.id}`}
-                        >
+                        <a className="px-4 py-2 rounded-xl bg-violet-600 font-semibold text-sm" href={`/room/${r.id}`}>
                           Join
                         </a>
                       </div>
@@ -267,6 +268,7 @@ export default function FeedPage() {
               )}
             </div>
           </div>
+
         </div>
       </section>
     </main>
