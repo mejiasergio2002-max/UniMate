@@ -1,9 +1,9 @@
 export type UniMateVideo = {
-  id: string;          // used in URL: /class/[id]
-  subject: "math";     // for now just math
-  src: string;         // /public path
+  id: string;
+  subject: "math";
+  src: string;
   title: string;
-  username: string;    // shown under thumbnail
+  username: string;
 };
 
 export const UNIMATE_VIDEOS: UniMateVideo[] = [
@@ -37,6 +37,5 @@ export function findVideo(id: string) {
 export function videosBySubject(subject: string) {
   const key = subject.trim().toLowerCase();
   if (key === "math") return UNIMATE_VIDEOS.filter((v) => v.subject === "math");
-  // fallback to math for now
   return UNIMATE_VIDEOS.filter((v) => v.subject === "math");
 }
