@@ -13,23 +13,14 @@ function fmt(ts: number) {
   return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-function isMathId(id: string) {
-  return /^math-(1|2|3)$/.test(id);
-}
-
-function makeVideoFromId(id: string) {
-  // For your current MVP: math-1, math-2, math-3
-  return {
-    id,
-    src: `/videos/math/${id}.mp4`, // -> /videos/math/math-1.mp4
-    username: "math.tutor",
-    title: `Math Class (${id})`,
-  };
-}
-
 export default function ClassRoomPage({ params }: { params: { id: string } }) {
-  const id = params.id;
-  const video = isMathId(id) ? makeVideoFromId(id) : null;
+  const id = (params?.id || "").trim();
+
+  // MVP: math-1, math-2, math-3
+  const isAllowed = /^math-(1|2|3)$/.test(id);
+
+  // Always derive video directly from URL id (no fragile lookup)
+  const videoSrc = `/videos/math/${id}.mp4`;
 
   const COMMENTS_KEY = `unimate_comments_${id}`;
   const TIPS_KEY = `unimate_tips_${id}`;
@@ -44,7 +35,6 @@ export default function ClassRoomPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     const raw = localStorage.getItem(COMMENTS_KEY);
     setComments(raw ? JSON.parse(raw) : []);
-
     const t = localStorage.getItem(TIPS_KEY);
     setTipsTotal(t ? Number(t) : 0);
   }, [COMMENTS_KEY, TIPS_KEY]);
@@ -75,7 +65,7 @@ export default function ClassRoomPage({ params }: { params: { id: string } }) {
     setTimeout(() => setTipMsg(null), 1200);
   }
 
-  if (!video) {
+  if (!isAllowed) {
     return (
       <main className="min-h-screen bg-[#0b1020] text-white p-10">
         <h1 className="text-2xl font-extrabold">Class not found</h1>
@@ -92,15 +82,12 @@ export default function ClassRoomPage({ params }: { params: { id: string } }) {
       <header className="border-b border-white/10">
         <div className="max-w-6xl mx-auto px-6 py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-violet-600 grid place-items-center font-extrabold">
-              U
-            </div>
+            <div className="w-10 h-10 rounded-xl bg-violet-600 grid place-items-center font-extrabold">U</div>
             <div>
               <div className="font-extrabold leading-4">UniMate</div>
               <div className="text-xs text-white/60">Class Room</div>
             </div>
           </div>
-
           <a className="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5" href="/feed">
             Back
           </a>
@@ -111,14 +98,13 @@ export default function ClassRoomPage({ params }: { params: { id: string } }) {
         {/* VIDEO + TIP BAR */}
         <div className="lg:col-span-7">
           <div className="border border-white/10 rounded-3xl p-5 bg-white/5">
-            <div className="text-sm text-white/60">Instructor</div>
-            <div className="text-xl font-extrabold">@{video.username}</div>
-            <div className="text-white/70 text-sm mt-1">{video.title}</div>
+            <div className="text-sm text-white/60">Video</div>
+            <div className="text-xl font-extrabold">{id}</div>
 
             <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-black/40">
               <video
                 className="w-full h-auto"
-                src={video.src}
+                src={videoSrc}
                 controls
                 playsInline
                 autoPlay
@@ -127,7 +113,7 @@ export default function ClassRoomPage({ params }: { params: { id: string } }) {
               />
             </div>
 
-            {/* Tip jar bar: $1 / $3 / $10 */}
+            {/* Tip bar */}
             <div className="mt-5 border border-white/10 rounded-2xl p-4 bg-black/20">
               <div className="flex items-center justify-between">
                 <div className="font-bold">Tip Jar</div>
@@ -156,7 +142,6 @@ export default function ClassRoomPage({ params }: { params: { id: string } }) {
         {/* COMMENTS */}
         <div className="lg:col-span-5 border border-white/10 rounded-3xl p-6 bg-white/5">
           <div className="text-xl font-extrabold">Comments</div>
-          <p className="mt-2 text-white/70 text-sm">Ask questions while watching.</p>
 
           <div className="mt-4 grid grid-cols-3 gap-2">
             <input
