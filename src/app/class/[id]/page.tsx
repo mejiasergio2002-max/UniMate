@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { findVideo } from "../../../lib/videos";
+import { useEffect, useState } from "react";
 
 type Comment = {
   id: string;
@@ -14,11 +13,26 @@ function fmt(ts: number) {
   return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function ClassRoomPage({ params }: { params: { id: string } }) {
-  const video = useMemo(() => findVideo(params.id), [params.id]);
+function isMathId(id: string) {
+  return /^math-(1|2|3)$/.test(id);
+}
 
-  const COMMENTS_KEY = `unimate_comments_${params.id}`;
-  const TIPS_KEY = `unimate_tips_${params.id}`;
+function makeVideoFromId(id: string) {
+  // For your current MVP: math-1, math-2, math-3
+  return {
+    id,
+    src: `/videos/math/${id}.mp4`, // -> /videos/math/math-1.mp4
+    username: "math.tutor",
+    title: `Math Class (${id})`,
+  };
+}
+
+export default function ClassRoomPage({ params }: { params: { id: string } }) {
+  const id = params.id;
+  const video = isMathId(id) ? makeVideoFromId(id) : null;
+
+  const COMMENTS_KEY = `unimate_comments_${id}`;
+  const TIPS_KEY = `unimate_tips_${id}`;
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [text, setText] = useState("");
@@ -65,7 +79,7 @@ export default function ClassRoomPage({ params }: { params: { id: string } }) {
     return (
       <main className="min-h-screen bg-[#0b1020] text-white p-10">
         <h1 className="text-2xl font-extrabold">Class not found</h1>
-        <p className="mt-2 text-white/70">This video ID doesn’t exist.</p>
+        <p className="mt-2 text-white/70">Only math-1, math-2, math-3 exist right now.</p>
         <a className="inline-block mt-6 px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5" href="/feed">
           Back to Feed
         </a>
@@ -94,7 +108,7 @@ export default function ClassRoomPage({ params }: { params: { id: string } }) {
       </header>
 
       <section className="max-w-6xl mx-auto px-6 py-10 grid lg:grid-cols-12 gap-6">
-        {/* VIDEO + TIP JAR */}
+        {/* VIDEO + TIP BAR */}
         <div className="lg:col-span-7">
           <div className="border border-white/10 rounded-3xl p-5 bg-white/5">
             <div className="text-sm text-white/60">Instructor</div>
@@ -113,7 +127,7 @@ export default function ClassRoomPage({ params }: { params: { id: string } }) {
               />
             </div>
 
-            {/* Tip bar */}
+            {/* Tip jar bar: $1 / $3 / $10 */}
             <div className="mt-5 border border-white/10 rounded-2xl p-4 bg-black/20">
               <div className="flex items-center justify-between">
                 <div className="font-bold">Tip Jar</div>
@@ -135,7 +149,6 @@ export default function ClassRoomPage({ params }: { params: { id: string } }) {
               </div>
 
               {tipMsg && <div className="mt-2 text-xs text-white/70">{tipMsg}</div>}
-              <div className="mt-2 text-xs text-white/50">MVP: tips saved locally (next: Stripe).</div>
             </div>
           </div>
         </div>

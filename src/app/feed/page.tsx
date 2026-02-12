@@ -1,11 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { videosBySubject, type UniMateVideo } from "../../lib/videos";
+
+const MATH_VIDEOS = [
+  { id: "math-1", src: "/videos/math/math-1.mp4", username: "math.tutor01" },
+  { id: "math-2", src: "/videos/math/math-2.mp4", username: "math.tutor02" },
+  { id: "math-3", src: "/videos/math/math-3.mp4", username: "math.tutor03" },
+];
 
 export default function FeedPage() {
   const [search, setSearch] = useState("math");
-  const videos: UniMateVideo[] = videosBySubject(search);
+
+  const videos =
+    !search.trim() || search.trim().toLowerCase() === "math"
+      ? MATH_VIDEOS
+      : MATH_VIDEOS; // MVP: always show math for now
 
   return (
     <main className="min-h-screen bg-[#0b1020] text-white">
@@ -32,7 +41,28 @@ export default function FeedPage() {
         </div>
       </header>
 
-      <section className="max-w-6xl mx-auto px-6 py-10">
+      <section className="max-w-6xl mx-auto px-6 py-10 grid md:grid-cols-2 gap-6">
+        {/* START TEACHING */}
+        <div className="border border-white/10 rounded-3xl p-6 bg-white/5">
+          <h2 className="text-xl font-extrabold">Start teaching</h2>
+          <p className="mt-2 text-white/70 text-sm">
+            Go live instantly and teach students in real time.
+          </p>
+
+          <a
+            href="/teach"
+            className="inline-flex items-center gap-2 mt-4 px-4 py-3 rounded-xl bg-red-500 font-semibold"
+          >
+            <span className="inline-block w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
+            Go LIVE now
+          </a>
+
+          <div className="mt-5 text-sm text-white/60">
+            UniMate now in 200+ Universities across the globe
+          </div>
+        </div>
+
+        {/* JOIN A CLASS */}
         <div className="border border-white/10 rounded-3xl p-6 bg-white/5">
           <h2 className="text-xl font-extrabold">Join a class</h2>
           <p className="mt-2 text-white/70 text-sm">Search subject (math for now)</p>
@@ -64,10 +94,6 @@ export default function FeedPage() {
               </a>
             ))}
           </div>
-
-          {videos.length === 0 && (
-            <div className="mt-4 text-sm text-white/60">No videos found.</div>
-          )}
         </div>
       </section>
     </main>
